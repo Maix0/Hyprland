@@ -29,19 +29,18 @@ in {
     inputs.hyprutils.overlays.default
     inputs.hyprwayland-scanner.overlays.default
     self.overlays.udis86
-    self.overlays.wayland-protocols
 
     # Hyprland packages themselves
     (final: _prev: let
       date = mkDate (self.lastModifiedDate or "19700101");
     in {
-      hyprland = final.callPackage ./default.nix {
+      hyprland = builtins.trace "Change back to use hyprwm/Hyprland" (final.callPackage ./default.nix {
         stdenv = final.gcc14Stdenv;
         version = "${version}+date=${date}_${self.shortRev or "dirty"}";
         commit = self.rev or "";
         revCount = self.sourceInfo.revCount or "";
         inherit date;
-      };
+      });
       hyprland-unwrapped = final.hyprland.override {wrapRuntimeDeps = false;};
 
       # Build major libs with debug to get as much info as possible in a stacktrace
@@ -94,18 +93,6 @@ in {
       };
 
       patches = [];
-    });
-  };
-
-  # TODO: remove when https://github.com/NixOS/nixpkgs/pull/397497 lands in master
-  wayland-protocols = final: prev: {
-    wayland-protocols = prev.wayland-protocols.overrideAttrs (self: super: {
-      version = "1.43";
-
-      src = final.fetchurl {
-        url = "https://gitlab.freedesktop.org/wayland/${self.pname}/-/releases/${self.version}/downloads/${self.pname}-${self.version}.tar.xz";
-        hash = "sha256-ujw0Jd0nxXtSkek9upe+EkeWAeALyrJNJkcZSMtkNlM=";
-      };
     });
   };
 }
